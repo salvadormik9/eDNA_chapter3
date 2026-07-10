@@ -1,0 +1,231 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2" xmlns:gx="http://www.google.com/kml/ext/2.2" xmlns:kml="http://www.opengis.net/kml/2.2" xmlns:atom="http://www.w3.org/2005/Atom">
+<Document id="document">
+	<name>Apo Island Sampling Map</name>
+	<gx:CascadingStyle kml:id="__managed_style_11A940B5CE3DA2BFC9E4">
+		<Style>
+			<IconStyle>
+				<Icon>
+					<href>https://earth.google.com/earth/document/icon?color=1976d2&amp;id=2000&amp;scale=4</href>
+				</Icon>
+				<hotSpot x="64" y="128" xunits="pixels" yunits="insetPixels"/>
+			</IconStyle>
+			<LabelStyle>
+			</LabelStyle>
+			<LineStyle>
+				<color>ff2dc0fb</color>
+				<width>2.66667</width>
+			</LineStyle>
+			<PolyStyle>
+				<color>40ffffff</color>
+			</PolyStyle>
+			<BalloonStyle>
+				<displayMode>hide</displayMode>
+			</BalloonStyle>
+		</Style>
+	</gx:CascadingStyle>
+	<gx:CascadingStyle kml:id="__managed_style_2B86D274403DA2BFC9E4">
+		<Style>
+			<IconStyle>
+				<scale>1.2</scale>
+				<Icon>
+					<href>https://earth.google.com/earth/document/icon?color=1976d2&amp;id=2000&amp;scale=4</href>
+				</Icon>
+				<hotSpot x="64" y="128" xunits="pixels" yunits="insetPixels"/>
+			</IconStyle>
+			<LabelStyle>
+			</LabelStyle>
+			<LineStyle>
+				<color>ff2dc0fb</color>
+				<width>4</width>
+			</LineStyle>
+			<PolyStyle>
+				<color>40ffffff</color>
+			</PolyStyle>
+			<BalloonStyle>
+				<displayMode>hide</displayMode>
+			</BalloonStyle>
+		</Style>
+	</gx:CascadingStyle>
+	<StyleMap id="__managed_style_0AA670DC053DA2BFC9E4">
+		<Pair>
+			<key>normal</key>
+			<styleUrl>#__managed_style_11A940B5CE3DA2BFC9E4</styleUrl>
+		</Pair>
+		<Pair>
+			<key>highlight</key>
+			<styleUrl>#__managed_style_2B86D274403DA2BFC9E4</styleUrl>
+		</Pair>
+	</StyleMap>
+	<Placemark id="0795A874EE3DA2BFC9CF">
+		<name>2: Olo Reef</name>
+		<LookAt>
+			<longitude>123.2719424214485</longitude>
+			<latitude>9.079831143091699</latitude>
+			<altitude>73.5657515513017</altitude>
+			<heading>0</heading>
+			<tilt>0</tilt>
+			<gx:fovy>34.9999471046798</gx:fovy>
+			<range>3587.209290683968</range>
+			<altitudeMode>absolute</altitudeMode>
+		</LookAt>
+		<styleUrl>#__managed_style_0AA670DC053DA2BFC9E4</styleUrl>
+		<Point>
+			<coordinates>123.2735613646271,9.082166661443505,13.76613623026766</coordinates>
+		</Point>
+	</Placemark>
+	<Placemark id="0CB8B3B9BC3DA2BFDCCF">
+		<name>3: Mamsa Reef</name>
+		<LookAt>
+			<longitude>123.2719424214485</longitude>
+			<latitude>9.079831143091699</latitude>
+			<altitude>73.5657515513017</altitude>
+			<heading>0</heading>
+			<tilt>0</tilt>
+			<gx:fovy>34.9999471046798</gx:fovy>
+			<range>3587.209290683968</range>
+			<altitudeMode>absolute</altitudeMode>
+		</LookAt>
+		<styleUrl>#__managed_style_0AA670DC053DA2BFC9E4</styleUrl>
+		<Point>
+			<coordinates>123.2743763187515,9.079493156605901,5.506677570559379</coordinates>
+		</Point>
+	</Placemark>
+	<Placemark id="0BC6D547413DA2BFEB30">
+		<name>4: Kan Oran Reef</name>
+		<LookAt>
+			<longitude>123.2719424214485</longitude>
+			<latitude>9.079831143091699</latitude>
+			<altitude>73.5657515513017</altitude>
+			<heading>0</heading>
+			<tilt>0</tilt>
+			<gx:fovy>34.9999471046798</gx:fovy>
+			<range>3587.209290683968</range>
+			<altitudeMode>absolute</altitudeMode>
+		</LookAt>
+		<styleUrl>#__managed_style_0AA670DC053DA2BFC9E4</styleUrl>
+		<Point>
+			<coordinates>123.2740483372406,9.075985228612343,2.697137548120896</coordinates>
+		</Point>
+	</Placemark>
+	<Placemark id="02D675577D3DA2C001C7">
+		<name>5: Marine Sanctuary</name>
+		<LookAt>
+			<longitude>123.2719424214485</longitude>
+			<latitude>9.079831143091699</latitude>
+			<altitude>73.5657515513017</altitude>
+			<heading>0</heading>
+			<tilt>0</tilt>
+			<gx:fovy>34.9999471046798</gx:fovy>
+			<range>3587.209290683968</range>
+			<altitudeMode>absolute</altitudeMode>
+		</LookAt>
+		<styleUrl>#__managed_style_0AA670DC053DA2BFC9E4</styleUrl>
+		<Point>
+			<coordinates>123.2711560032824,9.07398175438624,4.388690935776283</coordinates>
+		</Point>
+	</Placemark>
+	<Placemark id="0763B593383DA2C0167C">
+		<name>6: Rock East</name>
+		<LookAt>
+			<longitude>123.2719424214485</longitude>
+			<latitude>9.079831143091699</latitude>
+			<altitude>73.5657515513017</altitude>
+			<heading>0</heading>
+			<tilt>0</tilt>
+			<gx:fovy>34.9999471046798</gx:fovy>
+			<range>3587.209290683968</range>
+			<altitudeMode>absolute</altitudeMode>
+		</LookAt>
+		<styleUrl>#__managed_style_0AA670DC053DA2BFC9E4</styleUrl>
+		<Point>
+			<coordinates>123.2683652318506,9.070724407104613,3.050190088463707</coordinates>
+		</Point>
+	</Placemark>
+	<Placemark id="0E4528CF413DA2C037C0">
+		<name>1: Coconut Reef</name>
+		<LookAt>
+			<longitude>123.2719424214485</longitude>
+			<latitude>9.079831143091699</latitude>
+			<altitude>73.5657515513017</altitude>
+			<heading>0</heading>
+			<tilt>0</tilt>
+			<gx:fovy>34.9999471046798</gx:fovy>
+			<range>3587.209290683968</range>
+			<altitudeMode>absolute</altitudeMode>
+		</LookAt>
+		<styleUrl>#__managed_style_0AA670DC053DA2BFC9E4</styleUrl>
+		<Point>
+			<coordinates>123.2688104483678,9.08441880053833,0.6841381713767847</coordinates>
+		</Point>
+	</Placemark>
+	<Placemark id="025D3810243DA2C04697">
+		<name>10: Largahan Reef</name>
+		<LookAt>
+			<longitude>123.2719424214485</longitude>
+			<latitude>9.079831143091699</latitude>
+			<altitude>73.5657515513017</altitude>
+			<heading>0</heading>
+			<tilt>0</tilt>
+			<gx:fovy>34.9999471046798</gx:fovy>
+			<range>3587.209290683968</range>
+			<altitudeMode>absolute</altitudeMode>
+		</LookAt>
+		<styleUrl>#__managed_style_0AA670DC053DA2BFC9E4</styleUrl>
+		<Point>
+			<coordinates>123.267015453981,9.080846786834051,-0.7497162399306656</coordinates>
+		</Point>
+	</Placemark>
+	<Placemark id="0EFBA49EA23DA2C09B6E">
+		<name>7: Katipanan Reef</name>
+		<LookAt>
+			<longitude>123.2692290905961</longitude>
+			<latitude>9.076021276831227</latitude>
+			<altitude>16.46886605185069</altitude>
+			<heading>0</heading>
+			<tilt>0</tilt>
+			<gx:fovy>34.9999471046798</gx:fovy>
+			<range>1324.664700689027</range>
+			<altitudeMode>absolute</altitudeMode>
+		</LookAt>
+		<styleUrl>#__managed_style_0AA670DC053DA2BFC9E4</styleUrl>
+		<Point>
+			<coordinates>123.2675924211481,9.073390372162148,0.4036839141920812</coordinates>
+		</Point>
+	</Placemark>
+	<Placemark id="0FEB879F373DA2C0CA5C">
+		<name>9: Balay Reef</name>
+		<LookAt>
+			<longitude>123.2684196107077</longitude>
+			<latitude>9.078192630351298</latitude>
+			<altitude>19.04055932787225</altitude>
+			<heading>0</heading>
+			<tilt>0</tilt>
+			<gx:fovy>34.9999471046798</gx:fovy>
+			<range>1072.520974457148</range>
+			<altitudeMode>absolute</altitudeMode>
+		</LookAt>
+		<styleUrl>#__managed_style_0AA670DC053DA2BFC9E4</styleUrl>
+		<Point>
+			<coordinates>123.2672312581223,9.078560545327363,0.6944766425576132</coordinates>
+		</Point>
+	</Placemark>
+	<Placemark id="0494C995273DA2C5E6D3">
+		<name>8: Chapel Reef</name>
+		<LookAt>
+			<longitude>123.2668961771787</longitude>
+			<latitude>9.076776485055211</latitude>
+			<altitude>0.1014598732942673</altitude>
+			<heading>0</heading>
+			<tilt>0</tilt>
+			<gx:fovy>34.9999471046798</gx:fovy>
+			<range>384.6340924057222</range>
+			<altitudeMode>absolute</altitudeMode>
+		</LookAt>
+		<styleUrl>#__managed_style_0AA670DC053DA2BFC9E4</styleUrl>
+		<Point>
+			<coordinates>123.2669201874657,9.076332586607545,0.1013586382255793</coordinates>
+		</Point>
+	</Placemark>
+</Document>
+</kml>
