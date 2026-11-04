@@ -203,8 +203,8 @@ ggplot() +
     theme_bw() +
     labs(x = "Longitude",
          y = "Latitude",
-         fill = "Island",
-         shape = "Island")
+         fill = "Province",
+         shape = "Province")
 
 ggsave("outputs/pewsamplingsites_map.png",
        device = "png",
