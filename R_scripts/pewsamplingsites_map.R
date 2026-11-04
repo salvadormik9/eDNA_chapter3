@@ -1,20 +1,31 @@
-# ---- Load necessary packages ----
+#### Load necessary packages ####
 
 library(rerddap)
 library(ggplot2)
 library(sf)
 library(rnaturalearth)
 library(rnaturalearthdata)
+library(rnaturalearthhires)
 library(viridis)
 library(terra)
 library(dplyr)
 library(akima)
+library(readxl)
+library(janitor)
+library(ggnewscale)
 
-# ---- Define Variables, Extract Data, and Wrangle ----
+#### Read in Sampling Sites ####
+pew_sites <- read_excel("inputs/pewresearchfellowship_samplingsites.xlsx") %>%
+    clean_names()
+
+#### Define Variables, Extract Data, and Wrangle ####
+#Set bounding box for SST data 
+dl_lon_min <- 122; dl_lon_max <- 125
+dl_lat_min <- 8.9; dl_lat_max <- 11.5
 
 # Define Visayas bounding box of latitude and longitude
-lon_min <- 122; lon_max <- 125
-lat_min <- 9;   lat_max <- 11.5
+lon_min <- 122.25; lon_max <- 123.75
+lat_min <- 9;   lat_max <- 11.1
 
 # Use NOAA's CoralTemp or OISST dataset
 sst_info <- info("erdMH1sstdmday")  # Monthly daytime SST
@@ -23,8 +34,8 @@ sst_info <- info("erdMH1sstdmday")  # Monthly daytime SST
 sst_data <- griddap(
     sst_info,
     time    = c("2019-01-01T00:00:00Z", "2019-10-16T00:00:00Z"),
-    latitude  = c(lat_min, lat_max),
-    longitude = c(lon_min, lon_max),
+    latitude  = c(dl_lat_min, dl_lat_max),
+    longitude = c(dl_lon_min, dl_lon_max),
     fields    = "sst"
 )
 
@@ -35,13 +46,39 @@ df <- df[!is.na(df$sst), ]
 
 # Average over multiple time steps
 df_mean <- df %>%
-    group_by(longitude, latitude) %>%
-    summarise(sst = mean(sst, na.rm = TRUE), .groups = "drop")
+    group_by(longitude, 
+             latitude) %>%
+    summarise(sst = mean(sst, 
+                         na.rm = TRUE), 
+              .groups = "drop")
 
 # Get Philippines coastline
-ph <- ne_countries(country = "Philippines", scale = "medium", returnclass = "sf")
+ph <- ne_countries(country = "Philippines", 
+                   scale = "medium",
+                   returnclass = "sf")
 
-# ---- Maps of Sea Surface Temperature ----
+# Get province polygons: this is to draw the province lines
+ph_prov <- ne_states(country = "Philippines", 
+                     returnclass = "sf")
+
+
+occ <- ph_prov %>% 
+    filter(name %in% c("Negros Occidental",
+           "Bacolod")) %>% 
+    st_union() %>%
+    st_sf(geometry = .)
+
+ori <- ph_prov %>% filter(name == "Negros Oriental")%>% 
+    st_union()
+
+# The shared border = the part of Occidental's outline that lies within
+# ~100 m of Oriental. The small buffer handles vertices that don't line up exactly.
+negros_border <- st_intersection(st_boundary(occ), st_buffer(ori, 0.001))
+
+ph_land <- st_union(ph_prov)
+
+
+#### Plot Maps with Sea Surface Temperature ####
 # Plot
 ggplot() +
     geom_tile(data = df_mean, 
@@ -118,24 +155,60 @@ df_regular <- df_regular[!is.na(df_regular$sst), ]
 # interpolate = TRUE (geom_raster): visual smoothing that smooths the appearance of the pixels on 
 # screen when ggplot renders the image. 
 
+island_fill <- c("Negros Occidental" = "#EDAFB8",
+                  "Negros Oriental" = "#BEE1C0"
+                  )
+
 ggplot() +
     geom_raster(data = df_regular, 
                 aes(x = longitude, 
                     y = latitude, 
                     fill = sst),
                 interpolate = TRUE) + 
-    geom_sf(data = ph, 
-            fill = "wheat", 
-            color = "gray40", 
-            linewidth = 0.3) +
     scale_fill_viridis_c(option = "turbo", 
                          name = "SST (°C)",
                          na.value = NA) +
-    coord_sf(xlim = c(lon_min, lon_max), 
-             ylim = c(lat_min, lat_max),
+    geom_sf(data = ph_land, 
+            fill = "#EDEDD9", 
+            color = "black", 
+            linewidth = 0.3) +
+    geom_sf(data = occ,
+            fill = "#F8E1E5",
+            color = "black",
+            linewidth = 0.5) +
+    geom_sf(data = ori,
+            fill = "#CFEBD0",
+            color = "black",
+            linewidth = 0.5) +
+    geom_sf(data = negros_border,
+            color = "black",
+            linewidth = 0.6) +
+    new_scale_fill()+ 
+    geom_point(data = pew_sites,
+               aes(x = longitude,
+                   y = latitude,
+                   fill = island_side,
+                   shape = island_side),
+               color = "black",
+               size = 3,
+               stroke = 0.8) +
+    scale_fill_manual(values = island_fill) +
+    scale_shape_manual(values = c("Negros Occidental" = 21, 
+                                  "Negros Oriental" = 24)) +
+    coord_sf(xlim = c(lon_min, 
+                      lon_max), 
+             ylim = c(lat_min,
+                      lat_max),
              expand = FALSE) +
     theme_bw() +
     labs(x = "Longitude",
-         y = "Latitude")
-    )
+         y = "Latitude",
+         fill = "Island",
+         shape = "Island")
+
+ggsave("outputs/pewsamplingsites_map.png",
+       device = "png",
+       units = "in",
+       width = 9,
+       height = 8)
 
