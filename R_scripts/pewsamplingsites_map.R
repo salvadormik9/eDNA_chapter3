@@ -1,74 +1,75 @@
 #### Load necessary packages ####
-
-library(rerddap)
 library(ggplot2)
 library(sf)
 library(rnaturalearth)
 library(rnaturalearthdata)
 library(rnaturalearthhires)
-library(viridis)
 library(terra)
 library(dplyr)
-library(akima)
 library(readxl)
 library(janitor)
 library(ggnewscale)
+
+#### Download NOAA CoralTemp data (Coral Reef Watch) ####
+# Only downloads if the file isn't already in the inputs folder
+options(timeout = 3600)  # default 60 s timeout is too short for big files
+
+dir.create("inputs/coral_reef_watch", recursive = TRUE, showWarnings = FALSE)
+
+sst_file <- "inputs/coral_reef_watch/ct5km_climatology_v3.1.nc"
+
+# NOAA Coral Reef Watch 5 km climatology (global file, ~78 MB)
+if (!file.exists(sst_file)) {
+    download.file(
+        url = "https://www.star.nesdis.noaa.gov/pub/sod/mecb/crw/data/5km/v3.1_op/climatology/nc/ct5km_climatology_v3.1.nc",
+        destfile = sst_file,
+        mode = "wb"   # "wb" is essential on Windows or the file gets corrupted
+    )
+}
 
 #### Read in Sampling Sites ####
 pew_sites <- read_excel("inputs/pewresearchfellowship_samplingsites.xlsx") %>%
     clean_names()
 
-#### Define Variables, Extract Data, and Wrangle ####
-#Set bounding box for SST data 
-dl_lon_min <- 122; dl_lon_max <- 125
-dl_lat_min <- 8.9; dl_lat_max <- 11.5
-
-# Define Visayas bounding box of latitude and longitude
+#### Define map window ####
+# Visayas bounding box of latitude and longitude (plot window)
 lon_min <- 122.25; lon_max <- 123.75
-lat_min <- 9;   lat_max <- 11.1
+lat_min <- 9;      lat_max <- 11.1
 
-# Use NOAA's CoralTemp or OISST dataset
-sst_info <- info("erdMH1sstdmday")  # Monthly daytime SST
+# Slightly larger extent used to crop the SST raster (so the plot edges
+# are fully covered)
+my_ext <- ext(121, 126, 8.5, 12)
 
-# Define latitude, longitude, timeframe, and SST data into one dataframe 
-sst_data <- griddap(
-    sst_info,
-    time    = c("2019-01-01T00:00:00Z", "2019-10-16T00:00:00Z"),
-    latitude  = c(dl_lat_min, dl_lat_max),
-    longitude = c(dl_lon_min, dl_lon_max),
-    fields    = "sst"
-)
+#### Read and wrangle CoralTemp SST (Coral Reef Watch max monthly mean) ####
+sst_rast <- rast(sst_file,
+                 subds = "sst_clim_mmm")
 
-df <- sst_data$data
+sst_rast <- sst_rast[[1]]
+sst_rast <- crop(sst_rast, my_ext)
 
-# Remove NA values (land masking)
-df <- df[!is.na(df$sst), ]
+# terra raster -> data frame that ggplot can use
+# (na.rm = TRUE drops land cells, which are masked in the CoralTemp data)
+df_regular <- as.data.frame(sst_rast,
+                            xy = TRUE,
+                            na.rm = TRUE)
+names(df_regular) <- c("longitude", "latitude", "sst")
 
-# Average over multiple time steps
-df_mean <- df %>%
-    group_by(longitude, 
-             latitude) %>%
-    summarise(sst = mean(sst, 
-                         na.rm = TRUE), 
-              .groups = "drop")
+sst_lims <- range(df_regular$sst) 
+sst_top  <- 29.8
 
-# Get Philippines coastline
-ph <- ne_countries(country = "Philippines", 
-                   scale = "medium",
-                   returnclass = "sf")
-
-# Get province polygons: this is to draw the province lines
-ph_prov <- ne_states(country = "Philippines", 
+#### Get map polygons ####
+# Province polygons: this is to draw the province lines
+ph_prov <- ne_states(country = "Philippines",
                      returnclass = "sf")
 
-
-occ <- ph_prov %>% 
+occ <- ph_prov %>%
     filter(name %in% c("Negros Occidental",
-           "Bacolod")) %>% 
+                       "Bacolod")) %>%
     st_union() %>%
     st_sf(geometry = .)
 
-ori <- ph_prov %>% filter(name == "Negros Oriental")%>% 
+ori <- ph_prov %>%
+    filter(name == "Negros Oriental") %>%
     st_union()
 
 # The shared border = the part of Occidental's outline that lies within
@@ -77,100 +78,43 @@ negros_border <- st_intersection(st_boundary(occ), st_buffer(ori, 0.001))
 
 ph_land <- st_union(ph_prov)
 
-
-#### Plot Maps with Sea Surface Temperature ####
-# Plot
-ggplot() +
-    geom_tile(data = df_mean, 
-              aes(x = longitude, 
-                  y = latitude, 
-                  fill = sst)) +
-    geom_sf(data = ph, 
-            fill = "#fce5cd", 
-            color = "black", 
-            linewidth = 0.3) +
-    scale_fill_viridis_c(
-        option   = "turbo",       # or "plasma", "inferno"
-        name     = "SST (°C)",
-        na.value = NA
-    ) +
-    coord_sf(xlim = c(lon_min, 
-                      lon_max), 
-             ylim = c(lat_min,
-                      lat_max)) +
-    labs(
-        title    = "Map of Sea Surface Temperature in 2019",
-        x = "Longitude", 
-        y = "Latitude"
-    ) +
-    theme_minimal()
-
-# Make smoother graph of SST using the akima R package
-
-# ERDDAP data often has slightly irregular spacing between coordinates,
-# which prevents direct conversion to a raster. The interp() function
-# from the akima package fits a surface through the scattered points
-# and evaluates it on a clean, evenly-spaced grid.
-
-# Concept of Triangulation Interpolation:
-
-# Delaunay triangulation takes an irregular scatter of SST points and
-# connects them into a mesh of triangles (Delaunay triangulation), where each 
-# triangle is defined by 3 nearby data points. 
-# For any new grid point, triangulation interpolation finds which triangle 
-# it falls inside and linearly interpolates between the 3 triangle corners.
-
-# Interpolate to a regular grid
-interp_result <- with(df_mean, 
-                      interp(
-                          x    = longitude, 
-                          y    = latitude, 
-                          z    = sst, # the values to interpolate (sea surface temperature)
-                          xo   = seq(121, 126, by = 0.05),   # output lon grid: 121°E to 126°E every 0.05°
-                          yo   = seq(9,   13,  by = 0.05),  # output lat grid: 9°N to 13°N every 0.05°
-                          # 0.05° ≈ ~5.5 km resolution — decrease for finer detail, increase for speed
-                          linear = TRUE,
-                          # use linear (triangular) interpolation; 
-                          # set FALSE for smoother spline (slower)
-                          duplicate = "mean"
-                          # if two points share the same location,
-                          # use their average instead of throwing an error
-                      )
-)
-
-# interp() returns a list with $x (longitudes), $y (latitudes), and $z (matrix
-# of SST values). We need to "unfold" these into a flat x/y/z table that
-# ggplot can understand
-df_regular <- expand.grid(
-    longitude = interp_result$x,
-    latitude  = interp_result$y
-)
-
-# Flatten the SST matrix into a single column matching the row order of df_regular
-df_regular$sst <- as.vector(interp_result$z)
-df_regular <- df_regular[!is.na(df_regular$sst), ]
-
-# Let's plot our data! 
-# geom_raster() is a fast version of geom_tile() for evenly-spaced grids.
-# interpolate = TRUE (geom_raster): visual smoothing that smooths the appearance of the pixels on 
-# screen when ggplot renders the image. 
+#### Plot map with CoralTemp SST ####
+# CoralTemp is already on a regular 0.05 degree (~5 km) grid, so no akima
+# interpolation is needed. geom_raster() works directly, and
+# interpolate = TRUE smooths how the pixels appear on screen.
 
 island_fill <- c("Negros Occidental" = "#EDAFB8",
-                  "Negros Oriental" = "#BEE1C0"
-                  )
+                 "Negros Oriental"   = "#BEE1C0")
 
-ggplot() +
-    geom_raster(data = df_regular, 
-                aes(x = longitude, 
-                    y = latitude, 
+# Use the same SST palette as the regional sampling map
+sst_pal <- c("#0407C8", 
+             "#8ECBFA",
+             "#ECFDAE", 
+             "#ED772F",
+             "#83180F")
+
+sst_vals <- scales::rescale(seq(sst_lims[1], sst_lims[2], length.out = length(sst_pal)),
+                            from = c(sst_lims[1], sst_top))
+
+p <- ggplot() +
+    geom_raster(data = df_regular,
+                aes(x = longitude,
+                    y = latitude,
                     fill = sst),
-                interpolate = TRUE) + 
-    scale_fill_viridis_c(option = "turbo", 
-                         name = "SST (°C)",
-                         na.value = NA) +
-    geom_sf(data = ph_land, 
-            fill = "#EDEDD9", 
-            color = "black", 
+                interpolate = TRUE) +
+    scale_fill_gradientn(colours = c(sst_pal, tail(sst_pal, 1)),
+                         values  = c(sst_vals, 1),
+                         name    = "Maximum Monthly\nMean SST (°C)",
+                         limits  = c(sst_lims[1], sst_top),
+                         breaks  = seq(29, 29.8, by = 0.2),
+                         labels  = c("29", "29.2", "29.4", "29.6", "29.8"),
+                         na.value = NA,
+                         guide   = guide_colourbar(order = 2)) +
+    # To use the viridis turbo palette instead, swap the line above for:
+    # scale_fill_viridis_c(option = "turbo", name = "Maximum Monthly\nMean SST (°C)", na.value = NA) +
+    geom_sf(data = ph_land,
+            fill = "#EDEDD9",
+            color = "black",
             linewidth = 0.3) +
     geom_sf(data = occ,
             fill = "#F8E1E5",
@@ -183,7 +127,7 @@ ggplot() +
     geom_sf(data = negros_border,
             color = "black",
             linewidth = 0.6) +
-    new_scale_fill()+ 
+    new_scale_fill() +
     geom_point(data = pew_sites,
                aes(x = longitude,
                    y = latitude,
@@ -192,13 +136,13 @@ ggplot() +
                color = "black",
                size = 3,
                stroke = 0.8) +
-    scale_fill_manual(values = island_fill) +
-    scale_shape_manual(values = c("Negros Occidental" = 21, 
-                                  "Negros Oriental" = 24)) +
-    coord_sf(xlim = c(lon_min, 
-                      lon_max), 
-             ylim = c(lat_min,
-                      lat_max),
+    scale_fill_manual(values = island_fill,
+                      guide = guide_legend(order = 1)) +
+    scale_shape_manual(values = c("Negros Occidental" = 21,
+                                  "Negros Oriental"   = 24),
+                       guide = guide_legend(order = 1)) +
+    coord_sf(xlim = c(lon_min, lon_max),
+             ylim = c(lat_min, lat_max),
              expand = FALSE) +
     theme_bw() +
     labs(x = "Longitude",
@@ -206,9 +150,12 @@ ggplot() +
          fill = "Province",
          shape = "Province")
 
+p
+
 ggsave("outputs/pewsamplingsites_map.png",
+       plot = p,
        device = "png",
        units = "in",
        width = 9,
-       height = 8)
-
+       height = 8,
+       dpi = 300)
